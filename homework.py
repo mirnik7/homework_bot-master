@@ -4,7 +4,6 @@ import re
 import time
 
 import requests
-import telegram
 from dotenv import load_dotenv
 from telebot import TeleBot, apihelper
 
@@ -113,7 +112,7 @@ def send_message(bot, message):
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(msg.MSG_OK)
         return True
-    except telegram.error.TelegramError:
+    except apihelper.ApiException:
         logger.exception(msg.MSG_FAIL)
 
 
