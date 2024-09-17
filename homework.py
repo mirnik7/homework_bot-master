@@ -42,12 +42,16 @@ def check_tokens():
         'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
         'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID,
     }
+    tokens_availability_flg = True
     for key, value in env_vars.items():
         if not value:
             logger.critical(msg.TOKEN_WRONG.format(key))
-            raise SystemExit
+            tokens_availability_flg = False
 
-    logger.debug(msg.TOKEN_OK)
+    if tokens_availability_flg:
+        logger.debug(msg.TOKEN_OK)
+
+    return tokens_availability_flg
 
 
 def get_api_answer(timestamp):
@@ -60,7 +64,7 @@ def get_api_answer(timestamp):
         )
     except requests.RequestException as error:
         error = re.sub(re.compile(r'at 0x[0-9a-fA-F]+'), '', str(error))
-        raise Exception(error)
+        raise requests.ConnectionError(error) from error
 
     if response.status_code != requests.codes.ok:
         raise requests.HTTPError(
@@ -118,7 +122,8 @@ def send_message(bot, message):
 
 def main():
     """Основная логика работы бота."""
-    check_tokens()
+    if not check_tokens():
+        raise SystemExit
     logger.info(msg.BOT_START)
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = read_timestamp()
